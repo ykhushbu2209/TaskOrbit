@@ -76,7 +76,7 @@ export default function AnalyticsPage() {
                Performance Cycles
             </h3>
           </div>
-          <div className="h-[350px] w-full">
+          <div className="h-[350px] w-full min-h-[350px] min-w-0">
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={data}>
                 <defs>
@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
                Workload Distribution
             </h3>
           </div>
-          <div className="h-[350px] w-full flex items-center justify-center">
+          <div className="h-[350px] w-full flex items-center justify-center min-h-[350px] min-w-0">
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
@@ -133,7 +133,7 @@ export default function AnalyticsPage() {
            <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold">Weekly Throughput</h3>
            </div>
-           <div className="h-[300px] w-full">
+           <div className="h-[300px] w-full min-h-[300px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart data={data}>
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 'bold' }} />
