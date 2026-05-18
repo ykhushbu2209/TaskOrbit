@@ -7,7 +7,8 @@ import {
   Hash,
   Video,
   Phone,
-  Info
+  Info,
+  MessageSquare
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
@@ -25,11 +26,11 @@ export default function MessagesPage() {
       <div className="w-80 border-r border-white/5 flex flex-col">
         <div className="p-6 border-b border-white/5">
             <div className="relative group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-brand-purple transition-colors" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-brand-gold transition-colors" />
                 <input 
                     type="text" 
                     placeholder="Search transmissions..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs focus:outline-none transition-all"
+                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-gold/30 transition-all font-medium"
                 />
             </div>
         </div>
@@ -56,7 +57,7 @@ export default function MessagesPage() {
                             onClick={() => setSelectedUser(user.id)}
                             className={cn(
                                 "w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all group",
-                                selectedUser === user.id ? "bg-brand-purple/10 text-white" : "text-white/40 hover:bg-white/5 hover:text-white"
+                                selectedUser === user.id ? "bg-white/[0.05] text-[#f5e6c8]" : "text-white/40 hover:bg-white/3 hover:text-white"
                             )}
                         >
                             <div className="relative w-8 h-8 rounded-full border border-white/10 p-0.5">
@@ -132,10 +133,10 @@ export default function MessagesPage() {
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder={`Broadcast to ${activeUser.name.split(' ')[0]}...`}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 flex pl-6 pr-14 focus:outline-none focus:ring-1 focus:ring-brand-purple/20 transition-all font-light"
+                            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 flex pl-6 pr-14 focus:outline-none focus:border-brand-gold/20 transition-all font-medium text-sm"
                         />
                         <button 
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-brand-purple rounded-xl text-white hover:scale-105 active:scale-95 transition-all shadow-lg shadow-brand-purple/20"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-[#f5e6c8] rounded-xl text-brand-black hover:scale-105 active:scale-95 transition-all shadow-lg shadow-brand-gold/5"
                         >
                             <Send className="w-4 h-4 ml-0.5" />
                         </button>
@@ -164,8 +165,8 @@ function Message({ user, content, time, isMe = false }: { user: any, content: st
             </div>
             <div className={cn("space-y-1", isMe ? "text-right" : "")}>
                 <div className={cn(
-                    "p-4 rounded-2xl text-sm font-light leading-relaxed",
-                    isMe ? "bg-brand-purple text-white shadow-lg shadow-brand-purple/10" : "glass text-white/80"
+                    "p-4 rounded-2xl text-sm font-medium leading-relaxed",
+                    isMe ? "bg-white/[0.05] text-[#f5e6c8] border border-white/5" : "glass text-white/80"
                 )}>
                     {content}
                 </div>
@@ -174,5 +175,3 @@ function Message({ user, content, time, isMe = false }: { user: any, content: st
         </div>
     );
 }
-
-import { MessageSquare } from 'lucide-react';

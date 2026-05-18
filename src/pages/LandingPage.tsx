@@ -1,61 +1,71 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Orbit, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { Zap, ShieldCheck, User as UserIcon, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center bg-brand-black px-4">
+    <div className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center bg-app-bg text-app-fg px-4 transition-colors duration-500">
       {/* Background Orbits */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden h-full">
-        <div className="orbit-ring w-[300px] h-[300px] opacity-20" />
-        <div className="orbit-ring w-[600px] h-[600px] opacity-10" />
-        <div className="orbit-ring w-[900px] h-[900px] opacity-5" />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden h-full flex items-center justify-center">
+        <div className="orbit-ring w-[300px] h-[300px] border-app-border opacity-20" />
+        <div className="orbit-ring w-[600px] h-[600px] border-app-border opacity-10" />
+        <div className="orbit-ring w-[900px] h-[900px] border-app-border opacity-5" />
         
-        {/* Floating Avatars */}
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full p-0.5 border border-white/20 bg-brand-graphite shadow-[0_0_20px_rgba(139,92,246,0.2)]"
-            animate={{
-              x: [Math.random() * 100 - 50, Math.random() * 100 - 50],
-              y: [Math.random() * 100 - 50, Math.random() * 100 - 50],
-              rotate: [0, 360],
-            }}
-            transition={{
-              duration: 20 + Math.random() * 10,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            style={{
-              top: `${20 + Math.random() * 60}%`,
-              left: `${10 + Math.random() * 80}%`,
-              width: 40 + Math.random() * 20,
-              height: 40 + Math.random() * 20,
-            }}
-          >
-            <img 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} 
-              alt="Team member" 
-              className="w-full h-full rounded-full"
-            />
-          </motion.div>
-        ))}
+        {/* Revolving Avatars */}
+        {[...Array(12)].map((_, i) => {
+          const ringIndex = i % 4; // 4 distinct rings
+          const avatarsPerRing = 3; // 12 total / 4 rings
+          const positionInRing = Math.floor(i / 4);
+          
+          const ringSize = [300, 600, 900, 1200][ringIndex];
+          const duration = 30 + ringIndex * 15; // Consistent speed per ring
+          // Distribute avatars in the same ring evenly by angle
+          const delay = -(positionInRing / avatarsPerRing) * duration;
+          
+          return (
+            <motion.div
+              key={i}
+              className="absolute"
+              animate={{ rotate: 360 }}
+              transition={{
+                duration,
+                delay,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              style={{
+                width: ringSize,
+                height: ringSize,
+              }}
+            >
+              <div 
+                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full p-1 border border-app-border bg-app-surface shadow-[0_0_30px_rgba(129,140,248,0.1)]"
+                style={{
+                  width: 32 + ringIndex * 8,
+                  height: 32 + ringIndex * 8,
+                }}
+              >
+                <img 
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 40}`} 
+                  alt="Team member" 
+                  className="w-full h-full rounded-full grayscale-[0.2] hover:grayscale-0 transition-all"
+                />
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       <nav className="fixed top-0 left-0 w-full p-8 flex items-center justify-between z-50">
         <div className="flex items-center gap-2 group">
-          <div className="w-10 h-10 glass-morphism rounded-xl flex items-center justify-center group-hover:bg-brand-purple/20 transition-all duration-500">
-            <Orbit className="w-6 h-6 text-brand-purple" />
+          <div className="w-10 h-10 glass-morphism rounded-xl flex items-center justify-center group-hover:bg-brand-gold/20 transition-all duration-500 border border-app-border">
+            <Zap className="w-5 h-5 text-brand-gold fill-brand-gold/10" />
           </div>
-          <span className="text-2xl font-display font-bold tracking-tight">TaskOrbit</span>
+          <span className="text-2xl font-display font-bold tracking-tighter text-app-fg">TaskOrbit</span>
         </div>
-        <div className="hidden md:flex items-center gap-8 text-white/50 text-sm font-medium">
-          <a href="#" className="hover:text-white transition-colors">Features</a>
-          <a href="#" className="hover:text-white transition-colors">Design</a>
-          <a href="#" className="hover:text-white transition-colors">Enterprise</a>
-          <div className="h-4 w-px bg-white/10" />
-          <Link to="/login" className="px-5 py-2 glass rounded-full hover:bg-white/10 transition-all">Sign In</Link>
+        <div className="hidden md:flex items-center gap-8 text-app-fg/50 text-sm font-medium">
+          {/* Nav links removed as per request */}
         </div>
       </nav>
 
@@ -65,46 +75,42 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="text-6xl md:text-8xl font-display font-bold leading-tight mb-8">
-            Keep your team <br />
+          <h1 className="text-4xl md:text-6xl font-display font-bold leading-tight mb-8 tracking-tight text-app-fg">
+            Keep your <br className="md:hidden" /> team <br className="hidden md:block" /> 
             <span className="italic text-gradient-gold">in orbit.</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/40 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-            A production-grade team management platform designed for clarity, focus, and quiet confidence.
+          <p className="text-lg md:text-xl text-app-fg/30 mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
+            A production-grade team management platform designed <br className="hidden md:block" /> 
+            for clarity, focus, and quiet confidence.
           </p>
         </motion.div>
 
         <motion.div 
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-6"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <Link 
             to="/login?role=admin"
-            className="group relative px-8 py-4 bg-brand-gold text-brand-black font-bold rounded-2xl flex items-center gap-3 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(251,191,36,0.3)]"
+            className="group relative px-10 py-5 bg-[#f5e6c8] text-brand-black font-bold rounded-[1.25rem] flex items-center gap-3 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(245,230,200,0.1)]"
           >
             <ShieldCheck className="w-5 h-5" />
-            <span>I'm an Admin</span>
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            <span className="text-lg">I'm an Admin</span>
+            <ArrowRight className="w-5 h-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </Link>
           <Link 
             to="/login?role=member"
-            className="group px-8 py-4 glass text-white font-bold rounded-2xl flex items-center gap-3 transition-all hover:bg-white/10 hover:scale-105 active:scale-95"
+            className="group px-10 py-5 glass text-white font-bold rounded-[1.25rem] flex items-center gap-3 transition-all hover:bg-white/5 hover:scale-105 active:scale-95"
           >
-            <UserIcon className="w-5 h-5 text-brand-purple" />
-            <span>I'm a Team Member</span>
+            <UserIcon className="w-5 h-5 text-white/40" />
+            <span className="text-lg">I'm a Team Member</span>
+            <ArrowRight className="w-5 h-5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </Link>
         </motion.div>
       </div>
 
-      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-12 text-[10px] uppercase tracking-widest text-white/20 font-bold">
-        <span>Cinematic Workflow</span>
-        <div className="w-1 h-1 rounded-full bg-brand-purple" />
-        <span>Quantum Scheduling</span>
-        <div className="w-1 h-1 rounded-full bg-brand-purple" />
-        <span>AI Orchestration</span>
-      </div>
+      {/* Footer text removed as per request */}
       
       {/* Footer Ambient Glow */}
       <div className="fixed -bottom-[30%] left-1/2 -translate-x-1/2 w-[80%] h-1/2 bg-brand-purple/20 blur-[120px] pointer-events-none rounded-full" />

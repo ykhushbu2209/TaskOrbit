@@ -11,11 +11,17 @@ import { useStore } from './store/useStore';
 // Pages
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
+import SignupPage from './pages/SignupPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminTasksPage from './pages/AdminTasksPage';
+import AdminMembersPage from './pages/AdminMembersPage';
 import MessagesPage from './pages/MessagesPage';
+import ProjectsPage from './pages/ProjectsPage';
 import MemberDashboard from './pages/MemberDashboard';
-import FocusMode from './pages/FocusMode';
+import FocusModePage from './pages/FocusModePage';
+import OrbitViewPage from './pages/OrbitViewPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import SettingsPage from './pages/SettingsPage';
 
 // Components
 import DashboardLayout from './components/DashboardLayout';
@@ -41,74 +47,60 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           
           {/* Admin Routes */}
-          <Route path="/admin" element={
-            <ProtectedRoute role="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/tasks" element={
-            <ProtectedRoute role="admin">
-              <AdminTasksPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/projects" element={
-            <ProtectedRoute role="admin">
-              <div className="flex items-center justify-center h-[60vh] text-white/20 italic">Project Management Module Initializing...</div>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/tasks" element={
-            <ProtectedRoute role="admin">
-              <div className="flex items-center justify-center h-[60vh] text-white/20 italic">Task Control Center Initializing...</div>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/members" element={
-            <ProtectedRoute role="admin">
-              <div className="flex items-center justify-center h-[60vh] text-white/20 italic">Member Directory Synchronization...</div>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/messages" element={
-            <ProtectedRoute role="admin">
-              <MessagesPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/settings" element={
-            <ProtectedRoute role="admin">
-              <div className="flex items-center justify-center h-[60vh] text-white/20 italic">Workspace Configuration Panel...</div>
-            </ProtectedRoute>
-          } />
+          <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/projects" element={<ProtectedRoute role="admin"><ProjectsPage /></ProtectedRoute>} />
+          <Route path="/admin/tasks" element={<ProtectedRoute role="admin"><AdminTasksPage /></ProtectedRoute>} />
+          <Route path="/admin/members" element={<ProtectedRoute role="admin"><AdminMembersPage /></ProtectedRoute>} />
+          <Route path="/admin/analytics" element={<ProtectedRoute role="admin"><AnalyticsPage /></ProtectedRoute>} />
+          <Route path="/admin/messages" element={<ProtectedRoute role="admin"><MessagesPage /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute role="admin"><SettingsPage /></ProtectedRoute>} />
 
           {/* Member Routes */}
-          <Route path="/member" element={
-            <ProtectedRoute role="member">
-              <MemberDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/member/tasks" element={
-            <ProtectedRoute role="member">
-              <div className="flex items-center justify-center h-[60vh] text-white/20 italic">Personal Backlog Loading...</div>
-            </ProtectedRoute>
-          } />
-          <Route path="/member/messages" element={
-            <ProtectedRoute role="member">
-              <MessagesPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/member/settings" element={
-            <ProtectedRoute role="member">
-              <div className="flex items-center justify-center h-[60vh] text-white/20 italic">Personal Preferences...</div>
-            </ProtectedRoute>
-          } />
+          <Route path="/member" element={<ProtectedRoute role="member"><MemberDashboard /></ProtectedRoute>} />
+          <Route path="/member/projects" element={<ProtectedRoute role="member"><ProjectsPage /></ProtectedRoute>} />
+          <Route path="/member/tasks" element={<ProtectedRoute role="member"><AdminTasksPage /></ProtectedRoute>} />
+          <Route path="/member/messages" element={<ProtectedRoute role="member"><MessagesPage /></ProtectedRoute>} />
+          <Route path="/member/settings" element={<ProtectedRoute role="member"><SettingsPage /></ProtectedRoute>} />
           
-          {/* Full Screen Focus */}
-          <Route path="/member/focus" element={<FocusMode />} />
+          {/* Shared Immersive Routes */}
+          <Route path="/admin/orbit" element={<ProtectedRoute role="admin"><OrbitViewPage /></ProtectedRoute>} />
+          <Route path="/member/orbit" element={<ProtectedRoute role="member"><OrbitViewPage /></ProtectedRoute>} />
+          <Route path="/focus" element={<ProtectedRoute><FocusModePage /></ProtectedRoute>} />
 
-          {/* Redirects */}
+          {/* Simple Redirects for direct path access */}
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
+          <Route path="/tasks" element={<ProtectedRoute><TasksRedirect /></ProtectedRoute>} />
+          <Route path="/orbit" element={<ProtectedRoute><OrbitRedirect /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsRedirect /></ProtectedRoute>} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
     </Router>
   );
 }
+
+// Redirect Components
+const DashboardRedirect = () => {
+    const role = useStore(state => state.currentUser?.role);
+    return <Navigate to={role === 'admin' ? '/admin' : '/member'} replace />;
+};
+
+const TasksRedirect = () => {
+    const role = useStore(state => state.currentUser?.role);
+    return <Navigate to={role === 'admin' ? '/admin/tasks' : '/member/tasks'} replace />;
+};
+
+const OrbitRedirect = () => {
+    const role = useStore(state => state.currentUser?.role);
+    return <Navigate to={role === 'admin' ? '/admin/orbit' : '/member/orbit'} replace />;
+};
+
+const SettingsRedirect = () => {
+    const role = useStore(state => state.currentUser?.role);
+    return <Navigate to={role === 'admin' ? '/admin/settings' : '/member/settings'} replace />;
+};
 

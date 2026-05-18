@@ -7,10 +7,13 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   role: Role;
   avatar: string;
   status: 'online' | 'offline' | 'busy';
   workload: 'low' | 'optimal' | 'high' | 'critical';
+  adminId?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface Task {
@@ -19,7 +22,7 @@ export interface Task {
   description: string;
   status: 'todo' | 'in-progress' | 'in-review' | 'done';
   priority: 'low' | 'medium' | 'high' | 'critical';
-  assigneeId: string;
+  assigneeIds: string[];
   projectId: string;
   dueDate: string;
   createdAt: string;
@@ -35,6 +38,7 @@ export interface Project {
   healthScore: number;
   managerId: string;
   teamIds: string[];
+  startDate: string;
   deadline: string;
 }
 
@@ -51,38 +55,44 @@ export interface AppState {
   };
   
   setCurrentUser: (user: User | null) => void;
+  registerAdmin: (user: User) => void;
+  addUser: (user: User) => void;
+  updateUser: (userId: string, updates: Partial<User>) => void;
+  deleteUser: (userId: string) => void;
   addTask: (task: Task) => void;
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   deleteTask: (taskId: string) => void;
   addProject: (project: Project) => void;
   updateProject: (projectId: string, updates: Partial<Project>) => void;
+  deleteProject: (projectId: string) => void;
   setTheme: (theme: 'dark' | 'light') => void;
+  logout: () => void;
+  completeOnboarding: (userId: string) => void;
+  saveToStorage: () => void;
+  getFromStorage: (key: string) => any;
+  updateStorage: (key: string, value: any) => void;
 }
 
 const mockUsers: User[] = [
-  { id: '1', name: 'Alex Rivera', email: 'admin@taskorbit.com', role: 'admin', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex', status: 'online', workload: 'optimal' },
-  { id: '2', name: 'Sarah Chen', email: 'member@taskorbit.com', role: 'member', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah', status: 'online', workload: 'high' },
-  { id: '3', name: 'Marcus Bell', email: 'marcus@taskorbit.com', role: 'member', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus', status: 'busy', workload: 'low' },
-  { id: '4', name: 'Elena Frost', email: 'elena@taskorbit.com', role: 'member', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elena', status: 'online', workload: 'critical' },
-  { id: '5', name: 'David Kim', email: 'david@taskorbit.com', role: 'member', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David', status: 'offline', workload: 'optimal' },
+  { id: 'admin-khushbu', name: 'Khushbu Yadav', email: 'khushbu@admin.com', password: 'admin', role: 'admin', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Khushbu', status: 'online', workload: 'low' },
 ];
 
-const mockProjects: Project[] = [
-  { id: 'p1', name: 'Neural Nexus', description: 'Next-gen AI interface development', status: 'active', progress: 65, healthScore: 92, managerId: '1', teamIds: ['1', '2', '3'], deadline: '2024-06-15' },
-  { id: 'p2', name: 'Quantum Sync', description: 'Distributed systems synchronization protocol', status: 'active', progress: 40, healthScore: 78, managerId: '1', teamIds: ['1', '4', '5'], deadline: '2024-07-20' },
-  { id: 'p3', name: 'Aura UI', description: 'Cinematic component library', status: 'completed', progress: 100, healthScore: 95, managerId: '1', teamIds: ['2', '3'], deadline: '2024-05-10' },
-];
+const mockProjects: Project[] = [];
 
-const mockTasks: Task[] = [
-  { id: 't1', title: 'Implement Orbit Engine', description: 'Create the core visualization for the landing page', status: 'in-progress', priority: 'critical', assigneeId: '2', projectId: 'p1', dueDate: '2024-05-20', createdAt: '2024-05-12', tags: ['Frontend', 'Animation'] },
-  { id: 't2', title: 'AI Integration Layer', description: 'Mock the AI decision making logic', status: 'todo', priority: 'high', assigneeId: '1', projectId: 'p1', dueDate: '2024-05-25', createdAt: '2024-05-13', tags: ['Backend', 'AI'] },
-  { id: 't3', title: 'Design System Polish', description: 'Finalize the glassmorphism parameters', status: 'done', priority: 'medium', assigneeId: '3', projectId: 'p3', dueDate: '2024-05-10', createdAt: '2024-05-01', tags: ['Design'] },
-  { id: 't4', title: 'Workload Algorithm', description: 'Optimize the workload balancing logic', status: 'todo', priority: 'high', assigneeId: '4', projectId: 'p2', dueDate: '2024-06-01', createdAt: '2024-05-14', tags: ['Logic'] },
-];
+const mockTasks: Task[] = [];
+
+const updateProjectProgress = (state: AppState, projectId: string) => {
+  const projectTasks = state.tasks.filter(t => t.projectId === projectId);
+  if (projectTasks.length === 0) return state.projects;
+  const completedTasks = projectTasks.filter(t => t.status === 'done');
+  const progress = Math.round((completedTasks.length / projectTasks.length) * 100);
+  
+  return state.projects.map(p => p.id === projectId ? { ...p, progress } : p);
+};
 
 export const useStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentUser: null,
       users: mockUsers,
       tasks: mockTasks,
@@ -95,21 +105,80 @@ export const useStore = create<AppState>()(
       },
       
       setCurrentUser: (user) => set({ currentUser: user }),
-      addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
-      updateTask: (taskId, updates) => set((state) => ({
-        tasks: state.tasks.map((t) => t.id === taskId ? { ...t, ...updates } : t)
+      registerAdmin: (user) => set((state) => ({ users: [...state.users, user] })),
+      addUser: (user) => {
+        const newUser = { ...user, adminId: get().currentUser?.id };
+        set((state) => ({ users: [...state.users, newUser] }));
+      },
+      updateUser: (userId, updates) => set((state) => ({
+        users: state.users.map((u) => u.id === userId ? { ...u, ...updates } : u)
       })),
-      deleteTask: (taskId) => set((state) => ({
-        tasks: state.tasks.filter((t) => t.id !== taskId)
+      deleteUser: (userId) => set((state) => ({
+        users: state.users.filter((u) => u.id !== userId)
       })),
+      addTask: (task) => set((state) => {
+        const newTasks = [...state.tasks, task];
+        const newState = { ...state, tasks: newTasks };
+        return { 
+          tasks: newTasks,
+          projects: updateProjectProgress(newState, task.projectId)
+        };
+      }),
+      updateTask: (taskId, updates) => set((state) => {
+        const task = state.tasks.find(t => t.id === taskId);
+        if (!task) return state;
+        const newTasks = state.tasks.map((t) => t.id === taskId ? { ...t, ...updates } : t);
+        const newState = { ...state, tasks: newTasks };
+        return {
+          tasks: newTasks,
+          projects: updateProjectProgress(newState, task.projectId)
+        };
+      }),
+      deleteTask: (taskId) => set((state) => {
+        const task = state.tasks.find(t => t.id === taskId);
+        if (!task) return state;
+        const newTasks = state.tasks.filter((t) => t.id !== taskId);
+        const newState = { ...state, tasks: newTasks };
+        return {
+          tasks: newTasks,
+          projects: updateProjectProgress(newState, task.projectId)
+        };
+      }),
       addProject: (project) => set((state) => ({ projects: [...state.projects, project] })),
       updateProject: (projectId, updates) => set((state) => ({
         projects: state.projects.map((p) => p.id === projectId ? { ...p, ...updates } : p)
       })),
+      deleteProject: (projectId) => set((state) => ({
+        projects: state.projects.filter((p) => p.id !== projectId),
+        tasks: state.tasks.filter((t) => t.projectId !== projectId)
+      })),
       setTheme: (theme) => set((state) => ({ settings: { ...state.settings, theme } })),
+      logout: () => set({ currentUser: null }),
+      completeOnboarding: (userId) => set((state) => ({
+        users: state.users.map((u) => u.id === userId ? { ...u, onboardingCompleted: true } : u),
+        currentUser: state.currentUser?.id === userId ? { ...state.currentUser, onboardingCompleted: true } : state.currentUser
+      })),
+      
+      saveToStorage: () => {
+        const state = get();
+        localStorage.setItem('taskorbit-custom-sync', JSON.stringify({
+           users: state.users,
+           tasks: state.tasks,
+           projects: state.projects,
+           settings: state.settings
+        }));
+      },
+      getFromStorage: (key: string) => {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : null;
+      },
+      updateStorage: (key: string, value: any) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
     }),
     {
-      name: 'taskorbit-storage',
+      name: 'taskorbit-storage-v4',
     }
   )
 );
+

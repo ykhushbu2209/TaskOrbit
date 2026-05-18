@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Orbit, 
   LayoutDashboard, 
@@ -13,17 +13,34 @@ import {
   Bell,
   Sun,
   Moon,
-  ChevronLeft
+  ChevronLeft,
+  Zap
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
+import CommandPalette from './CommandPalette';
+
+import NotificationCenter from './NotificationCenter';
+import OnboardingModal from './OnboardingModal';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { currentUser, setCurrentUser, settings, setTheme } = useStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isLG, setIsLG] = React.useState(window.innerWidth >= 1024);
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const handler = (e: MediaQueryListEvent) => {
+      setIsLG(e.matches);
+      if (e.matches) setIsMobileMenuOpen(false);
+    };
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -31,6 +48,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
     { name: 'Projects', icon: Briefcase, path: '/admin/projects' },
     { name: 'Tasks', icon: CheckCircle2, path: '/admin/tasks' },
+    { name: 'Analytics', icon: Zap, path: '/admin/analytics' },
     { name: 'Members', icon: Users, path: '/admin/members' },
     { name: 'Messages', icon: MessageSquare, path: '/admin/messages' },
     { name: 'Settings', icon: Settings, path: '/admin/settings' },
@@ -38,8 +56,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const memberLinks = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/member' },
+    { name: 'Projects', icon: Briefcase, path: '/member/projects' },
     { name: 'My Tasks', icon: CheckCircle2, path: '/member/tasks' },
-    { name: 'Focus Mode', icon: Orbit, path: '/member/focus' },
+    { name: 'Focus Mode', icon: Zap, path: '/focus' },
     { name: 'Messages', icon: MessageSquare, path: '/member/messages' },
     { name: 'Settings', icon: Settings, path: '/member/settings' },
   ];
@@ -52,23 +71,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen bg-brand-black overflow-hidden font-sans">
+    <div className={cn(
+      "flex h-screen bg-app-bg text-app-fg overflow-hidden selection:bg-brand-gold/30 selection:text-white font-sans transition-colors duration-300",
+      settings.theme === 'light' && "light"
+    )}>
+      <CommandPalette />
+      <OnboardingModal />
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 bg-app-bg/80 backdrop-blur-sm z-[45] lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <motion.aside
         initial={false}
-        animate={{ width: isSidebarCollapsed ? 80 : 280 }}
-        className="relative h-full glass border-r border-white/5 z-30 flex flex-col"
+        animate={{ 
+          width: isSidebarCollapsed ? 90 : 300,
+          x: isLG ? 0 : (isMobileMenuOpen ? 0 : -300)
+        }}
+        className={cn(
+          "fixed lg:relative h-full bg-app-surface border-r border-app-border z-50 flex flex-col transition-all duration-300 shadow-2xl lg:shadow-none",
+          !isLG && !isMobileMenuOpen && "pointer-events-none"
+        )}
       >
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-10 h-10 min-w-10 glass-morphism rounded-xl flex items-center justify-center">
-            <Orbit className="w-6 h-6 text-brand-purple" />
+        <div className="p-8 flex items-center gap-4">
+          <div className="w-10 h-10 min-w-10 glass-morphism rounded-xl flex items-center justify-center border-brand-gold/10">
+            <Zap className="w-5 h-5 text-brand-ivory fill-white/10" />
           </div>
           {!isSidebarCollapsed && (
-            <span className="text-xl font-display font-bold tracking-tight">TaskOrbit</span>
+            <span className="text-2xl font-display font-bold tracking-tighter">TaskOrbit</span>
           )}
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        <nav className="flex-1 px-4 py-8 space-y-1">
           {links.map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -76,20 +119,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={link.path}
                 to={link.path}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-3 rounded-2xl transition-all group relative",
+                  "flex items-center gap-4 px-6 py-3.5 rounded-2xl transition-all group relative overflow-hidden",
                   isActive 
-                    ? "bg-white/10 text-white" 
-                    : "text-white/40 hover:text-white hover:bg-white/5"
+                    ? "text-[#f5e6c8] border-white ring-1 ring-white/20" 
+                    : "text-app-fg/30 hover:text-app-fg/60 border-transparent"
                 )}
               >
-                <link.icon className={cn("w-5 h-5", isActive ? "text-brand-purple" : "group-hover:text-brand-purple")} />
+                <link.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-[#f5e6c8]" : "group-hover:text-app-fg/60")} />
                 {!isSidebarCollapsed && (
-                  <span className="text-sm font-medium">{link.name}</span>
+                  <span className="text-[15px] font-medium tracking-tight">{link.name}</span>
                 )}
                 {isActive && (
                   <motion.div 
-                    layoutId="active-link"
-                    className="absolute inset-0 border border-brand-purple/50 rounded-2xl"
+                    layoutId="active-pill"
+                    className="absolute inset-0 bg-app-fg/[0.05] border border-app-border -z-10 shadow-[0_0_30px_rgba(245,230,200,0.02)]"
+                    style={{ borderRadius: '1.25rem' }}
                   />
                 )}
               </Link>
@@ -119,14 +163,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
         {/* Header */}
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 z-20 glass/50">
-          <div className="flex-1 max-w-xl">
+        <header className="h-20 border-b border-app-border flex items-center justify-between px-4 md:px-8 z-20 glass/50">
+          <div className="flex items-center gap-4 lg:hidden mr-4">
+             <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 glass rounded-xl text-app-fg/40 hover:text-app-fg"
+             >
+                <LayoutDashboard className="w-5 h-5" />
+             </button>
+             <Zap className="w-6 h-6 text-brand-gold" />
+          </div>
+
+          <div className="flex-1 max-w-xl hidden md:block">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-brand-purple transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-app-fg/20 group-focus-within:text-brand-gold transition-colors" />
               <input 
                 type="text"
                 placeholder="Search tasks, projects (Press Enter)..."
-                className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-brand-purple/20 transition-all"
+                className="w-full bg-app-fg/[0.02] border border-app-border rounded-full py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-brand-gold/30 transition-all font-medium"
               />
             </div>
           </div>
@@ -135,24 +189,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
-                className="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                className="w-10 h-10 flex items-center justify-center text-app-fg/40 hover:text-app-fg transition-colors"
               >
                 {settings.theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <button className="w-10 h-10 flex items-center justify-center text-white/40 hover:text-white relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-brand-purple rounded-full border-2 border-brand-black" />
+              <button 
+                onClick={handleLogout}
+                className="w-10 h-10 flex items-center justify-center text-app-fg/40 hover:text-red-400 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
               </button>
+              <NotificationCenter />
             </div>
             
-            <div className="h-8 w-px bg-white/5 mx-2" />
+            <div className="h-8 w-px bg-app-border mx-2" />
             
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold">{currentUser.name}</p>
-                <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">{currentUser.role}</p>
+                <p className="text-[10px] text-app-fg/30 uppercase tracking-widest font-bold">{currentUser.role}</p>
               </div>
-              <div className="w-10 h-10 rounded-full border-2 border-brand-purple/20 p-0.5 bg-brand-graphite overflow-hidden">
+              <div className="w-10 h-10 rounded-full border border-app-border p-0.5 bg-brand-graphite overflow-hidden">
                 <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full rounded-full" />
               </div>
             </div>
