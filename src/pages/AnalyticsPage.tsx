@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
             </h3>
           </div>
           <div className="h-[350px] w-full min-h-[350px] min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
             </h3>
           </div>
           <div className="h-[350px] w-full flex items-center justify-center min-h-[350px] min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
               <PieChart>
                 <Pie
                   data={pieData}
@@ -134,7 +134,7 @@ export default function AnalyticsPage() {
                 <h3 className="text-xl font-bold">Weekly Throughput</h3>
            </div>
            <div className="h-[300px] w-full min-h-[300px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
                     <BarChart data={data}>
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 'bold' }} />
                         <YAxis hide />
