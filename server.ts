@@ -12,18 +12,30 @@ async function startServer() {
 
   app.use(express.json({ limit: '10mb' }));
 
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
+  let aiClient: GoogleGenAI | null = null;
+
+  function getGeminiClient() {
+    if (!aiClient) {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is not set. Please configure it in Settings > Secrets.");
       }
+      aiClient = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
     }
-  });
+    return aiClient;
+  }
 
   // AI EOD Generation Endpoint
   app.post("/api/generate-eod", async (req, res) => {
     try {
+      const ai = getGeminiClient();
       const { tasks, projects, users, date } = req.body;
 
       const prompt = `
