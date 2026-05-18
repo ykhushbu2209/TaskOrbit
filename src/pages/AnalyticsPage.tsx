@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-morphism rounded-[2.5rem] p-8 border-white/5">
+        <div className="glass-morphism rounded-[2.5rem] p-8 border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold flex items-center gap-3">
                <TrendingUp className="w-5 h-5 text-brand-gold" />
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
             </h3>
           </div>
           <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="glass-morphism rounded-[2.5rem] p-8 border-white/5">
+        <div className="glass-morphism rounded-[2.5rem] p-8 border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold flex items-center gap-3">
                <Users className="w-5 h-5 text-brand-gold" />
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
             </h3>
           </div>
           <div className="h-[350px] w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={pieData}
@@ -129,12 +129,12 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="glass-morphism rounded-[2.5rem] p-8 border-white/5">
+      <div className="glass-morphism rounded-[2.5rem] p-8 border-white/5 min-w-0">
            <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-bold">Weekly Throughput</h3>
            </div>
            <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart data={data}>
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 'bold' }} />
                         <YAxis hide />
