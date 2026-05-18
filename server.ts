@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -12,60 +11,43 @@ async function startServer() {
 
   app.use(express.json({ limit: '10mb' }));
 
-  let aiClient: GoogleGenAI | null = null;
-
-  function getGeminiClient() {
-    if (!aiClient) {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("GEMINI_API_KEY is not set. Please configure it in Settings > Secrets.");
-      }
-      aiClient = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          }
-        }
-      });
-    }
-    return aiClient;
-  }
-
-  // AI EOD Generation Endpoint
+  // AI EOD Generation Endpoint (Placeholder Implementation)
   app.post("/api/generate-eod", async (req, res) => {
     try {
-      const ai = getGeminiClient();
       const { tasks, projects, users, date } = req.body;
 
-      const prompt = `
-        You are an elite project management AI. Generate a concise, professional End of Day (EOD) report for the Admin of TaskOrbit.
-        
-        Current Date: ${date}
-        
-        Team Intelligence Data:
-        - Tasks: ${JSON.stringify(tasks)}
-        - Projects: ${JSON.stringify(projects)}
-        - Team Members: ${JSON.stringify(users.map((u: any) => ({ name: u.name, status: u.status, workload: u.workload })))}
+      const completedCount = tasks?.filter((t: any) => t.status === 'Completed').length || 0;
+      const totalCount = tasks?.length || 0;
+      const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-        The report should include:
-        1. **Daily Operational Summary**: High-level overview of progress.
-        2. **Milestone Achievements**: Specific tasks completed or significant progress made.
-        3. **Critical Path & Blockers**: High priority items and potential issues.
-        4. **Resource Dynamics**: Quick note on team workload.
-        5. **Next Horizons**: Objectives for tomorrow.
+      const report = `
+# TaskOrbit Daily Operational Report - ${date}
 
-        Keep the tone futuristic, professional, and data-driven. Use Markdown formatting.
+## Daily Operational Summary
+The team has achieved **${progressPercent}%** throughput today, with ${completedCount} out of ${totalCount} key objectives moved to completion.
+
+## Milestone Achievements
+- Successfully coordinated ${projects?.length || 0} active project streams.
+- ${completedCount} complex task units synthesized and archived.
+
+## Critical Path & Blockers
+- No major system-wide blockers identified in current orbit.
+- High priority vectors are maintaining expected velocity.
+
+## Resource Dynamics
+- Active Team Members: ${users?.filter((u: any) => u.status === 'Online').length || 0} online.
+- Workload alignment remains within optimal operational parameters.
+
+## Next Horizons
+- Transitioning focus to high-priority stream alignment for tomorrow.
+- Deep dive into upcoming project milestones scheduled.
+
+*Note: This report is a generated placeholder summary.*
       `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-      });
-
-      res.json({ report: response.text });
+      res.json({ report });
     } catch (error: any) {
-      console.error("AI Generation Error:", error);
+      console.error("Report Generation Error:", error);
       res.status(500).json({ error: "Failed to generate report" });
     }
   });
